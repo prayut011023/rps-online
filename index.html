@@ -214,7 +214,6 @@ button:disabled {
 }
 
 @media (max-width: 550px) {
-
   .players {
     flex-direction: column;
   }
@@ -247,7 +246,6 @@ button:disabled {
 ⏳ กำลังเชื่อมต่อเกม...
 </div>
 
-
 <!-- LOGIN -->
 
 <div id="loginPage" class="card hidden">
@@ -259,7 +257,7 @@ button:disabled {
 <input
 id="nameInput"
 maxlength="20"
-placeholder="เช่น GPT">
+placeholder="เช่น Player">
 
 <button
 id="loginButton"
@@ -285,7 +283,6 @@ class="green full">
 </button>
 
 </div>
-
 
 <div class="card">
 
@@ -332,15 +329,11 @@ class="blue full">
 
 <div>👤 ผู้เล่น 1</div>
 
-<div
-id="player1Name"
-class="player-name">
+<div id="player1Name" class="player-name">
 รอผู้เล่น...
 </div>
 
-<div
-id="score1"
-class="score">
+<div id="score1" class="score">
 0
 </div>
 
@@ -352,15 +345,11 @@ class="score">
 
 <div>👤 ผู้เล่น 2</div>
 
-<div
-id="player2Name"
-class="player-name">
+<div id="player2Name" class="player-name">
 รอผู้เล่น...
 </div>
 
-<div
-id="score2"
-class="score">
+<div id="score2" class="score">
 0
 </div>
 
@@ -368,9 +357,7 @@ class="score">
 
 </div>
 
-<div
-id="roundText"
-class="round">
+<div id="roundText" class="round">
 ตาที่ 1 / 5
 </div>
 
@@ -379,40 +366,27 @@ class="round">
 
 <div class="card">
 
-<div
-id="status"
-class="status">
+<div id="status" class="status">
 ⏳ รอผู้เล่นคนที่ 2...
 </div>
 
-<div
-id="choices"
-class="choices hidden">
+<div id="choices" class="choices hidden">
 
-<button
-id="rockButton"
-class="choice">
+<button id="rockButton" class="choice">
 ✊
 </button>
 
-<button
-id="paperButton"
-class="choice">
+<button id="paperButton" class="choice">
 ✋
 </button>
 
-<button
-id="scissorsButton"
-class="choice">
+<button id="scissorsButton" class="choice">
 ✌️
 </button>
 
 </div>
 
-<div
-id="result"
-class="result">
-</div>
+<div id="result" class="result"></div>
 
 </div>
 
@@ -423,10 +397,7 @@ class="result">
 
 <h2>💬 แชตในห้อง</h2>
 
-<div
-id="chatBox"
-class="chat">
-</div>
+<div id="chatBox" class="chat"></div>
 
 <div class="chat-row">
 
@@ -435,9 +406,7 @@ id="chatInput"
 maxlength="100"
 placeholder="พิมพ์ข้อความ...">
 
-<button
-id="sendButton"
-class="blue">
+<button id="sendButton" class="blue">
 ส่ง
 </button>
 
@@ -446,9 +415,7 @@ class="blue">
 </div>
 
 
-<button
-id="leaveButton"
-class="red full">
+<button id="leaveButton" class="red full">
 🚪 ออกจากห้อง
 </button>
 
@@ -527,60 +494,11 @@ const auth =
 
 
 /* =========================
-ANONYMOUS LOGIN
-========================= */
-
-let currentUser = null;
-
-try {
-
-  const userCredential =
-    await signInAnonymously(auth);
-
-  currentUser =
-    userCredential.user;
-
-  document.getElementById(
-    "firebaseStatus"
-  ).textContent =
-    "🟢 เชื่อมต่อเกมสำเร็จ";
-
-  document.getElementById(
-    "loginPage"
-  ).classList.remove("hidden");
-
-} catch (error) {
-
-  console.error(error);
-
-  document.getElementById(
-    "firebaseStatus"
-  ).textContent =
-    "🔴 เชื่อมต่อ Firebase ไม่สำเร็จ: " +
-    error.code;
-
-  alert(
-    "เข้าสู่ระบบเกมไม่สำเร็จ\n\n" +
-    error.code +
-    "\n" +
-    error.message
-  );
-
-}
-
-
-/* =========================
-VARIABLES
-========================= */
-
-let myName = "";
-let roomCode = "";
-let myPlayer = "";
-
-
-/* =========================
 ELEMENTS
 ========================= */
+
+const firebaseStatus =
+  document.getElementById("firebaseStatus");
 
 const loginPage =
   document.getElementById("loginPage");
@@ -626,6 +544,63 @@ const leaveButton =
 
 
 /* =========================
+VARIABLES
+========================= */
+
+let currentUser = null;
+let myName = "";
+let roomCode = "";
+let myPlayer = "";
+
+
+/* =========================
+ANONYMOUS LOGIN
+========================= */
+
+async function connectFirebase() {
+
+  try {
+
+    firebaseStatus.textContent =
+      "⏳ กำลังเข้าสู่ระบบ...";
+
+    const userCredential =
+      await signInAnonymously(auth);
+
+    currentUser =
+      userCredential.user;
+
+    firebaseStatus.textContent =
+      "🟢 เชื่อมต่อเกมสำเร็จ";
+
+    loginPage.classList.remove("hidden");
+
+  } catch (error) {
+
+    console.error(
+      "Firebase Auth Error:",
+      error
+    );
+
+    firebaseStatus.textContent =
+      "🔴 Firebase Error: " +
+      error.code;
+
+    alert(
+      "เชื่อมต่อเกมไม่สำเร็จ\n\n" +
+      error.code +
+      "\n\n" +
+      error.message
+    );
+
+  }
+
+}
+
+connectFirebase();
+
+
+/* =========================
 LOGIN
 ========================= */
 
@@ -636,7 +611,7 @@ loginButton.addEventListener(
     if (!currentUser) {
 
       alert(
-        "ยังเชื่อมต่อ Firebase ไม่สำเร็จครับ"
+        "ยังเชื่อมต่อ Firebase ไม่สำเร็จ"
       );
 
       return;
@@ -654,15 +629,21 @@ loginButton.addEventListener(
       return;
     }
 
-    myName = name;
+    myName =
+      name;
 
     document.getElementById(
       "myName"
-    ).textContent = myName;
+    ).textContent =
+      myName;
 
-    loginPage.classList.add("hidden");
+    loginPage.classList.add(
+      "hidden"
+    );
 
-    menuPage.classList.remove("hidden");
+    menuPage.classList.remove(
+      "hidden"
+    );
 
   }
 );
@@ -702,33 +683,44 @@ createButton.addEventListener(
 
           player1: {
 
-            name: myName,
+            name:
+              myName,
 
-            uid: currentUser.uid,
+            uid:
+              currentUser.uid,
 
-            choice: "",
+            choice:
+              "",
 
-            score: 0
+            score:
+              0
 
           },
 
           player2: {
 
-            name: "",
+            name:
+              "",
 
-            uid: "",
+            uid:
+              "",
 
-            choice: "",
+            choice:
+              "",
 
-            score: 0
+            score:
+              0
 
           },
 
-          round: 0,
+          round:
+            0,
 
-          status: "waiting",
+          status:
+            "waiting",
 
-          result: ""
+          result:
+            ""
 
         }
       );
@@ -780,6 +772,7 @@ function generateRoomCode() {
   }
 
   return code;
+
 }
 
 
@@ -904,9 +897,13 @@ ENTER GAME
 
 function enterGame() {
 
-  menuPage.classList.add("hidden");
+  menuPage.classList.add(
+    "hidden"
+  );
 
-  gamePage.classList.remove("hidden");
+  gamePage.classList.remove(
+    "hidden"
+  );
 
   document.getElementById(
     "roomCode"
@@ -951,7 +948,6 @@ function listenRoom() {
       updatePlayers(room);
 
       updateGame(room);
-
 
       if (
 
@@ -1050,9 +1046,6 @@ function updateGame(room) {
       "hidden"
     );
 
-    result.textContent =
-      "";
-
     return;
   }
 
@@ -1101,7 +1094,6 @@ function updateGame(room) {
     result.textContent =
       room.result || "";
 
-    return;
   }
 
 }
@@ -1208,10 +1200,10 @@ async function calculateResult(room) {
         "rooms/" + roomCode
       ),
       {
-        status: "resolving"
+        status:
+          "resolving"
       }
     );
-
 
     const a =
       room.player1.choice;
@@ -1220,17 +1212,23 @@ async function calculateResult(room) {
       room.player2.choice;
 
 
+    const emoji = {
+
+      rock:
+        "✊",
+
+      paper:
+        "✋",
+
+      scissors:
+        "✌️"
+
+    };
+
+
+    /* DRAW */
+
     if (a === b) {
-
-      const emoji = {
-
-        rock: "✊",
-
-        paper: "✋",
-
-        scissors: "✌️"
-
-      };
 
       await update(
         ref(
@@ -1262,19 +1260,20 @@ async function calculateResult(room) {
     }
 
 
-    let winner = "";
+    /* FIND WINNER */
 
+    let winner = "";
 
     if (
 
       (a === "rock" &&
-        b === "scissors") ||
+       b === "scissors") ||
 
       (a === "paper" &&
-        b === "rock") ||
+       b === "rock") ||
 
       (a === "scissors" &&
-        b === "paper")
+       b === "paper")
 
     ) {
 
@@ -1311,19 +1310,7 @@ async function calculateResult(room) {
 
     }
 
-
     round++;
-
-
-    const emoji = {
-
-      rock: "✊",
-
-      paper: "✋",
-
-      scissors: "✌️"
-
-    };
 
 
     let resultText = "";
@@ -1354,12 +1341,15 @@ async function calculateResult(room) {
     }
 
 
+    /* FINISH */
+
     if (round >= 5) {
 
       let finalText = "";
 
-
-      if (score1 > score2) {
+      if (
+        score1 > score2
+      ) {
 
         finalText =
           "🏆🎉 " +
@@ -1424,8 +1414,11 @@ async function calculateResult(room) {
       );
 
       return;
+
     }
 
+
+    /* NEXT ROUND */
 
     await update(
       ref(
@@ -1521,7 +1514,8 @@ function listenChat() {
             "message-name";
 
           name.textContent =
-            msg.name + ": ";
+            msg.name +
+            ": ";
 
           div.appendChild(
             name
@@ -1529,13 +1523,11 @@ function listenChat() {
 
           div.appendChild(
             document.createTextNode(
-              msg.text
+                            msg.text
             )
           );
 
-          chatBox.appendChild(
-            div
-          );
+          chatBox.appendChild(div);
 
         }
       );
@@ -1558,5 +1550,133 @@ sendButton.addEventListener(
   sendMessage
 );
 
+chatInput.addEventListener(
+  "keydown",
+  function(event) {
 
-chatI
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+
+  }
+);
+
+
+async function sendMessage() {
+
+  if (!currentUser || !roomCode) {
+    return;
+  }
+
+  const text =
+    chatInput.value.trim();
+
+  if (!text) {
+    return;
+  }
+
+  try {
+
+    const messagesRef =
+      ref(
+        db,
+        "rooms/" +
+        roomCode +
+        "/messages"
+      );
+
+    await push(
+      messagesRef,
+      {
+        name: myName,
+        uid: currentUser.uid,
+        text: text,
+        time: Date.now()
+      }
+    );
+
+    chatInput.value = "";
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "ส่งข้อความไม่ได้\n\n" +
+      error.code +
+      "\n" +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =========================
+LEAVE ROOM
+========================= */
+
+leaveButton.addEventListener(
+  "click",
+  async function() {
+
+    if (!roomCode) {
+      location.reload();
+      return;
+    }
+
+    try {
+
+      const roomRef =
+        ref(
+          db,
+          "rooms/" + roomCode
+        );
+
+      const snapshot =
+        await get(roomRef);
+
+      if (snapshot.exists()) {
+
+        if (myPlayer === "player1") {
+
+          await remove(roomRef);
+
+        } else {
+
+          await update(
+            roomRef,
+            {
+              "player2/name": "",
+              "player2/uid": "",
+              "player2/choice": "",
+              status: "waiting"
+            }
+          );
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+    location.reload();
+
+  }
+);
+
+
+/* =========================
+FINISH
+========================= */
+
+</script>
+
+</body>
+</html>
+   
