@@ -3,127 +3,458 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เป่ายิ้งฉุบออนไลน์</title>
+<title>RPS Battle 🌍</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  text-align: center;
-  margin: 0;
-  padding: 20px;
+* {
+  box-sizing: border-box;
 }
 
-.box {
-  max-width: 500px;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #15162b, #24245a, #111827);
+  color: white;
+  min-height: 100vh;
+}
+
+.container {
+  width: 95%;
+  max-width: 900px;
   margin: auto;
-  background: rgba(255,255,255,0.15);
-  padding: 25px;
+  padding: 25px 0;
+}
+
+.logo {
+  text-align: center;
+  font-size: 34px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.09);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
 input {
-  padding: 12px;
-  width: 80%;
-  margin: 7px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
   border: none;
-  border-radius: 10px;
+  margin: 7px 0;
   font-size: 16px;
+  outline: none;
 }
 
 button {
-  padding: 12px 20px;
-  margin: 7px;
   border: none;
-  border-radius: 12px;
+  border-radius: 13px;
+  padding: 13px 18px;
   font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
+  margin: 5px;
+  transition: .2s;
 }
 
-.choice {
-  font-size: 40px;
-  width: 90px;
-  height: 70px;
+button:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.primary {
+  background: #6366f1;
+  color: white;
+}
+
+.green {
+  background: #22c55e;
+  color: white;
+}
+
+.red {
+  background: #ef4444;
+  color: white;
+}
+
+.gray {
+  background: #475569;
+  color: white;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-#roomCode {
-  font-size: 30px;
+.room-code {
+  font-size: 32px;
   font-weight: bold;
-  letter-spacing: 5px;
+  letter-spacing: 7px;
+  text-align: center;
+  color: #facc15;
+  padding: 10px;
+}
+
+.players {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.player {
+  flex: 1;
+  background: rgba(255,255,255,.08);
+  border-radius: 16px;
+  padding: 15px;
+  text-align: center;
+}
+
+.player-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.score {
+  font-size: 42px;
+  font-weight: bold;
+  color: #facc15;
+}
+
+.vs {
+  display: flex;
+  align-items: center;
+  font-size: 25px;
+  font-weight: bold;
 }
 
 .status {
-  margin: 15px;
-  font-size: 18px;
+  text-align: center;
+  font-size: 19px;
+  margin: 15px 0;
+  color: #e2e8f0;
+}
+
+.choices {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.choice {
+  width: 120px;
+  height: 120px;
+  font-size: 48px;
+  background: rgba(255,255,255,.1);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.choice:hover {
+  border-color: #818cf8;
+  background: rgba(99,102,241,.25);
+}
+
+.result {
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  min-height: 40px;
+}
+
+.chat-box {
+  height: 220px;
+  overflow-y: auto;
+  background: rgba(0,0,0,.2);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.message {
+  background: rgba(255,255,255,.08);
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 7px;
+}
+
+.message-name {
+  font-weight: bold;
+  color: #a5b4fc;
+}
+
+.chat-input {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.chat-input input {
+  margin: 0;
+}
+
+.leaderboard {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard th,
+.leaderboard td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #22c55e;
+  font-size: 13px;
+}
+
+.footer {
+  text-align: center;
+  color: #94a3b8;
+  padding: 20px;
+}
+
+@media(max-width:600px) {
+  .players {
+    flex-direction: column;
+  }
+
+  .vs {
+    justify-content: center;
+  }
+
+  .choice {
+    width: 95px;
+    height: 95px;
+    font-size: 38px;
+  }
+
+  .logo {
+    font-size: 27px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
+<div class="container">
 
-<h1>✊✋✌️ เป่ายิ้งฉุบออนไลน์</h1>
+  <div class="logo">✊ RPS BATTLE 🌍</div>
+  <div class="subtitle">Rock • Paper • Scissors Online</div>
 
-<!-- หน้าแรก -->
-<div id="menu">
+  <!-- HOME -->
+  <div id="home">
 
-<input id="nameInput" placeholder="ชื่อของคุณ">
+    <div class="card">
+      <h2>👤 ตั้งชื่อผู้เล่น</h2>
 
-<br>
+      <input
+        id="nameInput"
+        maxlength="20"
+        placeholder="ใส่ชื่อของคุณ..."
+      >
 
-<button onclick="createRoom()">🏠 สร้างห้อง</button>
+      <button class="primary" onclick="createRoom()">
+        🏠 สร้างห้อง
+      </button>
 
-<br>
+      <button class="green" onclick="showJoin()">
+        🔑 เข้าห้อง
+      </button>
+    </div>
 
-<input id="roomInput" placeholder="รหัสห้อง">
+    <div id="joinBox" class="card hidden">
+      <h2>🔑 เข้าห้องด้วยรหัส</h2>
 
-<br>
+      <input
+        id="roomInput"
+        maxlength="5"
+        placeholder="เช่น ABC12"
+        style="text-transform:uppercase"
+      >
 
-<button onclick="joinRoom()">🚪 เข้าห้อง</button>
+      <button class="green" onclick="joinRoom()">
+        🚀 เข้าห้อง
+      </button>
 
-</div>
+      <button class="gray" onclick="hideJoin()">
+        ย้อนกลับ
+      </button>
+    </div>
+
+  </div>
 
 
-<!-- ห้องเกม -->
-<div id="game" class="hidden">
+  <!-- GAME -->
+  <div id="game" class="hidden">
 
-<h2>รหัสห้อง</h2>
+    <div class="card">
 
-<div id="roomCode"></div>
+      <div style="text-align:center">
+        <div>🔐 รหัสห้อง</div>
+        <div id="roomCode" class="room-code"></div>
+        <small>ส่งรหัสนี้ให้เพื่อนเพื่อเข้ามาเล่น</small>
+      </div>
 
-<hr>
+    </div>
 
-<h3 id="players">กำลังรอผู้เล่น...</h3>
 
-<div class="status" id="status">
-รอผู้เล่นอีกคน
-</div>
+    <!-- PLAYERS -->
+    <div class="card">
 
-<div>
+      <div class="players">
 
-<button class="choice" onclick="choose('rock')">✊</button>
+        <div class="player">
+          <div>🧑 ผู้เล่น 1</div>
+          <div id="player1Name" class="player-name">รอผู้เล่น...</div>
+          <div id="score1" class="score">0</div>
+          <div id="ready1"></div>
+        </div>
 
-<button class="choice" onclick="choose('paper')">✋</button>
+        <div class="vs">
+          VS
+        </div>
 
-<button class="choice" onclick="choose('scissors')">✌️</button>
+        <div class="player">
+          <div>🧑 ผู้เล่น 2</div>
+          <div id="player2Name" class="player-name">รอผู้เล่น...</div>
+          <div id="score2" class="score">0</div>
+          <div id="ready2"></div>
+        </div>
 
-</div>
+      </div>
 
-<h2 id="result"></h2>
+    </div>
 
-<button onclick="newRound()">🔄 รอบใหม่</button>
 
-<br>
+    <!-- GAME -->
+    <div class="card">
 
-<button onclick="leaveRoom()">🚪 ออกจากห้อง</button>
+      <div id="status" class="status">
+        ⏳ รอผู้เล่นอีกคน...
+      </div>
 
-</div>
+      <div id="choices" class="choices hidden">
+
+        <button class="choice" onclick="choose('rock')">
+          ✊
+        </button>
+
+        <button class="choice" onclick="choose('paper')">
+          ✋
+        </button>
+
+        <button class="choice" onclick="choose('scissors')">
+          ✌️
+        </button>
+
+      </div>
+
+      <div id="result" class="result"></div>
+
+      <div style="text-align:center">
+
+        <button
+          id="newRoundBtn"
+          class="green hidden"
+          onclick="newRound()">
+          🔄 รอบใหม่
+        </button>
+
+        <button
+          id="newMatchBtn"
+          class="primary hidden"
+          onclick="newMatch()">
+          🏆 เริ่มแมตช์ใหม่
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LEADERBOARD -->
+    <div class="card">
+
+      <h2>🏅 กระดานคะแนน</h2>
+
+      <table class="leaderboard">
+
+        <thead>
+          <tr>
+            <th>ผู้เล่น</th>
+            <th>ชนะ</th>
+            <th>แพ้</th>
+            <th>เสมอ</th>
+          </tr>
+        </thead>
+
+        <tbody id="leaderboardBody"></tbody>
+
+      </table>
+
+      <p style="text-align:center;color:#94a3b8">
+        🏆 ใครถึง 5 คะแนนก่อน ชนะการแข่งขัน!
+      </p>
+
+    </div>
+
+
+    <!-- CHAT -->
+    <div class="card">
+
+      <h2>💬 แชตในห้อง</h2>
+
+      <div id="chatBox" class="chat-box"></div>
+
+      <div class="chat-input">
+
+        <input
+          id="chatInput"
+          maxlength="100"
+          placeholder="พิมพ์ข้อความ..."
+          onkeydown="if(event.key==='Enter') sendMessage()"
+        >
+
+        <button class="primary" onclick="sendMessage()">
+          ส่ง
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div style="text-align:center">
+
+      <button class="red" onclick="leaveRoom()">
+        🚪 ออกจากห้อง
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="footer">
+    🌍 RPS Battle Online • เล่นกับเพื่อนได้ทั่วโลก
+  </div>
 
 </div>
 
@@ -139,7 +470,9 @@ import {
   set,
   get,
   update,
-  onValue
+  onValue,
+  push,
+  remove
 }
 from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
@@ -172,25 +505,52 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 
+let roomCode = "";
 let myName = "";
-
-let myRoom = "";
-
 let myPlayer = "";
 
+let roomListener = null;
+let chatListener = null;
 
-/* สร้างรหัสห้อง */
 
-function generateCode() {
+/* =========================
+   HOME
+========================= */
+
+window.showJoin = function() {
+
+  document
+    .getElementById("joinBox")
+    .classList.remove("hidden");
+
+};
+
+
+window.hideJoin = function() {
+
+  document
+    .getElementById("joinBox")
+    .classList.add("hidden");
+
+};
+
+
+/* =========================
+   RANDOM ROOM CODE
+========================= */
+
+function generateRoomCode() {
 
   const chars =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
   let code = "";
 
   for(let i = 0; i < 5; i++) {
 
-    code += chars[Math.floor(Math.random() * chars.length)];
+    code += chars[
+      Math.floor(Math.random() * chars.length)
+    ];
 
   }
 
@@ -198,291 +558,615 @@ function generateCode() {
 }
 
 
-/* สร้างห้อง */
+/* =========================
+   CREATE ROOM
+========================= */
 
 window.createRoom = async function() {
 
   myName =
-  document.getElementById("nameInput").value.trim();
+    document.getElementById("nameInput")
+    .value.trim();
 
   if(!myName) {
 
-    alert("กรุณาใส่ชื่อ");
-
+    alert("กรุณาใส่ชื่อก่อน 😄");
     return;
+
   }
 
 
-  myRoom = generateCode();
+  roomCode = generateRoomCode();
 
   myPlayer = "player1";
 
 
-  await set(ref(db, "rooms/" + myRoom), {
+  const roomRef =
+    ref(db, "rooms/" + roomCode);
+
+
+  await set(roomRef, {
 
     player1: {
 
       name: myName,
 
-      choice: ""
+      choice: "",
+
+      score: 0,
+
+      wins: 0,
+
+      losses: 0,
+
+      draws: 0
 
     },
 
-    player2: null,
+    player2: {
 
-    result: ""
+      name: "",
+
+      choice: "",
+
+      score: 0,
+
+      wins: 0,
+
+      losses: 0,
+
+      draws: 0
+
+    },
+
+    round: {
+
+      status: "waiting",
+
+      result: ""
+
+    },
+
+    host: "player1"
 
   });
 
 
-  openGame();
+  enterGame();
 
 };
 
 
-/* เข้าห้อง */
+/* =========================
+   JOIN ROOM
+========================= */
 
 window.joinRoom = async function() {
 
   myName =
-  document.getElementById("nameInput").value.trim();
+    document.getElementById("nameInput")
+    .value.trim();
 
-  myRoom =
-  document.getElementById("roomInput").value
-  .trim()
-  .toUpperCase();
+  roomCode =
+    document.getElementById("roomInput")
+    .value.trim()
+    .toUpperCase();
 
 
-  if(!myName || !myRoom) {
+  if(!myName) {
 
-    alert("กรุณาใส่ชื่อและรหัสห้อง");
-
+    alert("กรุณาใส่ชื่อก่อน 😄");
     return;
+
+  }
+
+
+  if(roomCode.length !== 5) {
+
+    alert("รหัสห้องต้องมี 5 ตัว");
+    return;
+
   }
 
 
   const roomRef =
-  ref(db, "rooms/" + myRoom);
+    ref(db, "rooms/" + roomCode);
 
   const snapshot =
-  await get(roomRef);
+    await get(roomRef);
 
 
   if(!snapshot.exists()) {
 
-    alert("ไม่พบห้องนี้");
-
+    alert("ไม่พบห้องนี้ 😢");
     return;
+
   }
 
 
   const room = snapshot.val();
 
 
-  if(room.player2) {
+  if(room.player2 && room.player2.name) {
 
-    alert("ห้องนี้มีผู้เล่นครบแล้ว");
-
+    alert("ห้องนี้มีผู้เล่นครบแล้ว 🚫");
     return;
+
   }
+
+
+  await update(roomRef, {
+
+    "player2/name": myName,
+
+    "player2/choice": "",
+
+    "player2/score": 0,
+
+    "player2/wins": 0,
+
+    "player2/losses": 0,
+
+    "player2/draws": 0,
+
+    "round/status": "choosing"
+
+  });
 
 
   myPlayer = "player2";
 
 
-  await update(roomRef, {
-
-    player2: {
-
-      name: myName,
-
-      choice: ""
-
-    }
-
-  });
-
-
-  openGame();
+  enterGame();
 
 };
 
 
-/* เปิดหน้าเกม */
+/* =========================
+   ENTER GAME
+========================= */
 
-function openGame() {
+function enterGame() {
 
-  document.getElementById("menu")
-  .classList.add("hidden");
+  document
+    .getElementById("home")
+    .classList.add("hidden");
 
-  document.getElementById("game")
-  .classList.remove("hidden");
+  document
+    .getElementById("game")
+    .classList.remove("hidden");
 
-  document.getElementById("roomCode")
-  .textContent = myRoom;
+
+  document
+    .getElementById("roomCode")
+    .textContent = roomCode;
 
 
   listenRoom();
 
+  listenChat();
+
 }
 
 
-/* ฟังข้อมูลห้องแบบเรียลไทม์ */
+/* =========================
+   LISTEN ROOM
+========================= */
 
 function listenRoom() {
 
   const roomRef =
-  ref(db, "rooms/" + myRoom);
+    ref(db, "rooms/" + roomCode);
 
 
-  onValue(roomRef, (snapshot) => {
+  roomListener =
+    onValue(roomRef, snapshot => {
 
-    if(!snapshot.exists()) return;
+      if(!snapshot.exists()) {
 
+        alert("ห้องถูกปิดแล้ว");
 
-    const room = snapshot.val();
+        location.reload();
 
+        return;
 
-    let playerText = "";
-
-
-    if(room.player1) {
-
-      playerText +=
-      "👤 " + room.player1.name;
-
-    }
+      }
 
 
-    if(room.player2) {
-
-      playerText +=
-      "  VS  👤 " + room.player2.name;
-
-    }
+      const room = snapshot.val();
 
 
-    document.getElementById("players")
-    .textContent = playerText;
+      updatePlayers(room);
+
+      updateGame(room);
+
+      updateLeaderboard(room);
 
 
-    if(!room.player2) {
+      /* HOST CALCULATES RESULT */
 
-      document.getElementById("status")
-      .textContent =
-      "⏳ รอเพื่อนเข้าห้อง...";
+      if(
+        myPlayer === "player1" &&
+        room.player1 &&
+        room.player2 &&
+        room.player1.choice &&
+        room.player2.choice &&
+        room.round.status === "choosing"
+      ) {
 
-      return;
+        calculateResult(room);
 
-    }
+      }
+
+    });
+
+}
 
 
-    if(room.player1.choice &&
-       room.player2.choice) {
+/* =========================
+   PLAYERS
+========================= */
 
-      showResult(room);
+function updatePlayers(room) {
 
-    }
+  const p1 =
+    room.player1 || {};
 
-    else {
+  const p2 =
+    room.player2 || {};
 
-      document.getElementById("status")
-      .textContent =
+
+  document
+    .getElementById("player1Name")
+    .textContent =
+    p1.name || "รอผู้เล่น...";
+
+
+  document
+    .getElementById("player2Name")
+    .textContent =
+    p2.name || "รอผู้เล่น...";
+
+
+  document
+    .getElementById("score1")
+    .textContent =
+    p1.score || 0;
+
+
+  document
+    .getElementById("score2")
+    .textContent =
+    p2.score || 0;
+
+
+  document
+    .getElementById("ready1")
+    .innerHTML =
+    p1.choice
+    ? '<span class="badge">เลือกแล้ว ✓</span>'
+    : '⏳ ยังไม่เลือก';
+
+
+  document
+    .getElementById("ready2")
+    .innerHTML =
+    p2.choice
+    ? '<span class="badge">เลือกแล้ว ✓</span>'
+    : '⏳ ยังไม่เลือก';
+
+}
+
+
+/* =========================
+   GAME DISPLAY
+========================= */
+
+function updateGame(room) {
+
+  const status =
+    document.getElementById("status");
+
+  const choices =
+    document.getElementById("choices");
+
+  const result =
+    document.getElementById("result");
+
+  const newRoundBtn =
+    document.getElementById("newRoundBtn");
+
+  const newMatchBtn =
+    document.getElementById("newMatchBtn");
+
+
+  newRoundBtn.classList.add("hidden");
+
+  newMatchBtn.classList.add("hidden");
+
+
+  if(!room.player2 || !room.player2.name) {
+
+    status.textContent =
+      "⏳ รอผู้เล่นคนที่ 2...";
+
+    choices.classList.add("hidden");
+
+    result.textContent = "";
+
+    return;
+
+  }
+
+
+  if(room.round.status === "choosing") {
+
+    status.textContent =
       "🎮 เลือกของคุณเลย!";
 
+    choices.classList.remove("hidden");
+
+    result.textContent = "";
+
+  }
+
+
+  if(room.round.status === "result") {
+
+    choices.classList.add("hidden");
+
+    status.textContent =
+      "🎯 ผลรอบนี้";
+
+    result.textContent =
+      room.round.result || "";
+
+    newRoundBtn.classList.remove("hidden");
+
+  }
+
+
+  if(room.round.status === "finished") {
+
+    choices.classList.add("hidden");
+
+    status.textContent =
+      "🏆 จบการแข่งขัน!";
+
+    result.textContent =
+      room.round.result || "";
+
+    newMatchBtn.classList.remove("hidden");
+
+  }
+
+}
+
+
+/* =========================
+   CHOOSE
+========================= */
+
+window.choose = async function(choice) {
+
+  const roomRef =
+    ref(
+      db,
+      "rooms/" +
+      roomCode +
+      "/" +
+      myPlayer +
+      "/choice"
+    );
+
+
+  await set(roomRef, choice);
+
+
+  document
+    .getElementById("status")
+    .textContent =
+    "✅ เลือกแล้ว! รออีกคน...";
+
+};
+
+
+/* =========================
+   RESULT
+========================= */
+
+async function calculateResult(room) {
+
+  const a =
+    room.player1.choice;
+
+  const b =
+    room.player2.choice;
+
+
+  let winner = "";
+
+  if(a === b) {
+
+    winner = "draw";
+
+  }
+  else if(
+    (a === "rock" && b === "scissors") ||
+    (a === "paper" && b === "rock") ||
+    (a === "scissors" && b === "paper")
+  ) {
+
+    winner = "player1";
+
+  }
+  else {
+
+    winner = "player2";
+
+  }
+
+
+  const emoji = {
+
+    rock: "✊",
+
+    paper: "✋",
+
+    scissors: "✌️"
+
+  };
+
+
+  let resultText = "";
+
+
+  if(winner === "draw") {
+
+    resultText =
+      `🤝 เสมอ! ${emoji[a]} vs ${emoji[b]}`;
+
+  }
+
+
+  if(winner === "player1") {
+
+    resultText =
+      `🏆 ${room.player1.name} ชนะรอบนี้! ${emoji[a]} vs ${emoji[b]}`;
+
+  }
+
+
+  if(winner === "player2") {
+
+    resultText =
+      `🏆 ${room.player2.name} ชนะรอบนี้! ${emoji[a]} vs ${emoji[b]}`;
+
+  }
+
+
+  let score1 =
+    room.player1.score || 0;
+
+  let score2 =
+    room.player2.score || 0;
+
+
+  let wins1 =
+    room.player1.wins || 0;
+
+  let wins2 =
+    room.player2.wins || 0;
+
+  let losses1 =
+    room.player1.losses || 0;
+
+  let losses2 =
+    room.player2.losses || 0;
+
+  let draws1 =
+    room.player1.draws || 0;
+
+  let draws2 =
+    room.player2.draws || 0;
+
+
+  if(winner === "player1") {
+
+    score1++;
+    wins1++;
+    losses2++;
+
+  }
+
+
+  if(winner === "player2") {
+
+    score2++;
+    wins2++;
+    losses1++;
+
+  }
+
+
+  if(winner === "draw") {
+
+    draws1++;
+    draws2++;
+
+  }
+
+
+  let gameStatus = "result";
+
+
+  if(score1 >= 5 || score2 >= 5) {
+
+    gameStatus = "finished";
+
+    if(score1 > score2) {
+
+      resultText =
+        `🏆🎉 ${room.player1.name} ชนะการแข่งขัน!`;
+
     }
+    else {
+
+      resultText =
+        `🏆🎉 ${room.player2.name} ชนะการแข่งขัน!`;
+
+    }
+
+  }
+
+
+  const roomRef =
+    ref(db, "rooms/" + roomCode);
+
+
+  await update(roomRef, {
+
+    "player1/score": score1,
+
+    "player2/score": score2,
+
+    "player1/wins": wins1,
+
+    "player2/wins": wins2,
+
+    "player1/losses": losses1,
+
+    "player2/losses": losses2,
+
+    "player1/draws": draws1,
+
+    "player2/draws": draws2,
+
+    "round/status": gameStatus,
+
+    "round/result": resultText
 
   });
 
 }
 
 
-/* เลือก */
-
-window.choose = async function(choice) {
-
-  if(!myRoom) return;
-
-
-  await update(
-
-    ref(db,
-    "rooms/" + myRoom + "/" + myPlayer),
-
-    {
-
-      choice: choice
-
-    }
-
-  );
-
-
-  document.getElementById("status")
-  .textContent =
-  "✅ เลือกแล้ว รออีกคน...";
-
-};
-
-
-/* คำนวณผล */
-
-function showResult(room) {
-
-  const p1 = room.player1.choice;
-
-  const p2 = room.player2.choice;
-
-
-  let result = "";
-
-
-  if(p1 === p2) {
-
-    result = "🤝 เสมอ!";
-
-  }
-
-  else if(
-
-    (p1 === "rock" && p2 === "scissors") ||
-
-    (p1 === "scissors" && p2 === "paper") ||
-
-    (p1 === "paper" && p2 === "rock")
-
-  ) {
-
-    result =
-    "🏆 " + room.player1.name + " ชนะ!";
-
-  }
-
-  else {
-
-    result =
-    "🏆 " + room.player2.name + " ชนะ!";
-
-  }
-
-
-  document.getElementById("result")
-  .textContent = result;
-
-
-  document.getElementById("status")
-  .textContent =
-  "🎉 ทั้งคู่เลือกแล้ว!";
-
-}
-
-
-/* รอบใหม่ */
+/* =========================
+   NEW ROUND
+========================= */
 
 window.newRound = async function() {
 
+  if(myPlayer !== "player1") {
+
+    alert("ให้ผู้สร้างห้องกดเริ่มรอบใหม่ครับ 😄");
+    return;
+
+  }
+
+
   const roomRef =
-  ref(db, "rooms/" + myRoom);
+    ref(db, "rooms/" + roomCode);
 
 
   await update(roomRef, {
@@ -491,26 +1175,262 @@ window.newRound = async function() {
 
     "player2/choice": "",
 
-    result: ""
+    "round/status": "choosing",
+
+    "round/result": ""
+
+  });
+
+};
+
+
+/* =========================
+   NEW MATCH
+========================= */
+
+window.newMatch = async function() {
+
+  if(myPlayer !== "player1") {
+
+    alert("ให้ผู้สร้างห้องเริ่มแมตช์ใหม่ครับ 😄");
+    return;
+
+  }
+
+
+  const roomRef =
+    ref(db, "rooms/" + roomCode);
+
+
+  await update(roomRef, {
+
+    "player1/choice": "",
+
+    "player2/choice": "",
+
+    "player1/score": 0,
+
+    "player2/score": 0,
+
+    "player1/wins": 0,
+
+    "player2/wins": 0,
+
+    "player1/losses": 0,
+
+    "player2/losses": 0,
+
+    "player1/draws": 0,
+
+    "player2/draws": 0,
+
+    "round/status": "choosing",
+
+    "round/result": ""
+
+  });
+
+};
+
+
+/* =========================
+   LEADERBOARD
+========================= */
+
+function updateLeaderboard(room) {
+
+  const body =
+    document.getElementById("leaderboardBody");
+
+
+  body.innerHTML = "";
+
+
+  const players = [
+
+    room.player1,
+
+    room.player2
+
+  ];
+
+
+  players.forEach((p, index) => {
+
+    if(!p || !p.name) return;
+
+
+    const row =
+      document.createElement("tr");
+
+
+    row.innerHTML = `
+
+      <td>
+        ${index === 0 ? "🥇" : "🥈"}
+        ${escapeHTML(p.name)}
+      </td>
+
+      <td>${p.wins || 0}</td>
+
+      <td>${p.losses || 0}</td>
+
+      <td>${p.draws || 0}</td>
+
+    `;
+
+
+    body.appendChild(row);
+
+  });
+
+}
+
+
+/* =========================
+   CHAT
+========================= */
+
+function listenChat() {
+
+  const chatRef =
+    ref(
+      db,
+      "rooms/" +
+      roomCode +
+      "/messages"
+    );
+
+
+  chatListener =
+    onValue(chatRef, snapshot => {
+
+      const box =
+        document.getElementById("chatBox");
+
+
+      box.innerHTML = "";
+
+
+      snapshot.forEach(child => {
+
+        const msg =
+          child.val();
+
+
+        const div =
+          document.createElement("div");
+
+
+        div.className = "message";
+
+
+        div.innerHTML = `
+
+          <span class="message-name">
+            ${escapeHTML(msg.name)}
+          </span>
+
+          : ${escapeHTML(msg.text)}
+
+        `;
+
+
+        box.appendChild(div);
+
+      });
+
+
+      box.scrollTop =
+        box.scrollHeight;
+
+    });
+
+}
+
+
+/* =========================
+   SEND CHAT
+========================= */
+
+window.sendMessage = async function() {
+
+  const input =
+    document.getElementById("chatInput");
+
+
+  const text =
+    input.value.trim();
+
+
+  if(!text) return;
+
+
+  const chatRef =
+    ref(
+      db,
+      "rooms/" +
+      roomCode +
+      "/messages"
+    );
+
+
+  await push(chatRef, {
+
+    name: myName,
+
+    text: text,
+
+    time: Date.now()
 
   });
 
 
-  document.getElementById("result")
-  .textContent = "";
+  input.value = "";
 
 };
 
 
-/* ออกจากห้อง */
+/* =========================
+   SECURITY: HTML ESCAPE
+========================= */
+
+function escapeHTML(text) {
+
+  return String(text)
+
+    .replaceAll("&", "&amp;")
+
+    .replaceAll("<", "&lt;")
+
+    .replaceAll(">", "&gt;")
+
+    .replaceAll('"', "&quot;")
+
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* =========================
+   LEAVE ROOM
+========================= */
 
 window.leaveRoom = async function() {
 
-  location.reload();
+  if(!confirm("ต้องการออกจากห้องใช่ไหม?")) {
+    return;
+  }
 
-};
 
-</script>
+  if(myPlayer === "player1") {
 
-</body>
-  </html>
+    await remove(
+      ref(db, "rooms/" + roomCode)
+    );
+
+  }
+  else {
+
+    await update(
+      ref(db
