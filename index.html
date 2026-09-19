@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เป่ายิ้งฉุบออนไลน์</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
+
+.box {
+  max-width: 500px;
+  margin: auto;
+  background: rgba(255,255,255,0.15);
+  padding: 25px;
+  border-radius: 20px;
+}
+
+input {
+  padding: 12px;
+  width: 80%;
+  margin: 7px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+button {
+  padding: 12px 20px;
+  margin: 7px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.choice {
+  font-size: 40px;
+  width: 90px;
+  height: 70px;
+}
+
+.hidden {
+  display: none;
+}
+
+#roomCode {
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 5px;
+}
+
+.status {
+  margin: 15px;
+  font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>✊✋✌️ เป่ายิ้งฉุบออนไลน์</h1>
+
+<!-- หน้าแรก -->
+<div id="menu">
+
+<input id="nameInput" placeholder="ชื่อของคุณ">
+
+<br>
+
+<button onclick="createRoom()">🏠 สร้างห้อง</button>
+
+<br>
+
+<input id="roomInput" placeholder="รหัสห้อง">
+
+<br>
+
+<button onclick="joinRoom()">🚪 เข้าห้อง</button>
+
+</div>
+
+
+<!-- ห้องเกม -->
+<div id="game" class="hidden">
+
+<h2>รหัสห้อง</h2>
+
+<div id="roomCode"></div>
+
+<hr>
+
+<h3 id="players">กำลังรอผู้เล่น...</h3>
+
+<div class="status" id="status">
+รอผู้เล่นอีกคน
+</div>
+
+<div>
+
+<button class="choice" onclick="choose('rock')">✊</button>
+
+<button class="choice" onclick="choose('paper')">✋</button>
+
+<button class="choice" onclick="choose('scissors')">✌️</button>
+
+</div>
+
+<h2 id="result"></h2>
+
+<button onclick="newRound()">🔄 รอบใหม่</button>
+
+<br>
+
+<button onclick="leaveRoom()">🚪 ออกจากห้อง</button>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  update,
+  onValue
+}
+from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyDYIebLvIq25DiyLgsBwnE5px1CqgrC9j4",
+
+  authDomain: "rps-game-7baf2.firebaseapp.com",
+
+  databaseURL:
+  "https://rps-game-7baf2-default-rtdb.firebaseio.com",
+
+  projectId: "rps-game-7baf2",
+
+  storageBucket:
+  "rps-game-7baf2.firebasestorage.app",
+
+  messagingSenderId: "668427240160",
+
+  appId:
+  "1:668427240160:web:201df10712e1bbe8b48685",
+
+  measurementId: "G-88QY7T21K0"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+
+let myName = "";
+
+let myRoom = "";
+
+let myPlayer = "";
+
+
+/* สร้างรหัสห้อง */
+
+function generateCode() {
+
+  const chars =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  let code = "";
+
+  for(let i = 0; i < 5; i++) {
+
+    code += chars[Math.floor(Math.random() * chars.length)];
+
+  }
+
+  return code;
+}
+
+
+/* สร้างห้อง */
+
+window.createRoom = async function() {
+
+  myName =
+  document.getElementById("nameInput").value.trim();
+
+  if(!myName) {
+
+    alert("กรุณาใส่ชื่อ");
+
+    return;
+  }
+
+
+  myRoom = generateCode();
+
+  myPlayer = "player1";
+
+
+  await set(ref(db, "rooms/" + myRoom), {
+
+    player1: {
+
+      name: myName,
+
+      choice: ""
+
+    },
+
+    player2: null,
+
+    result: ""
+
+  });
+
+
+  openGame();
+
+};
+
+
+/* เข้าห้อง */
+
+window.joinRoom = async function() {
+
+  myName =
+  document.getElementById("nameInput").value.trim();
+
+  myRoom =
+  document.getElementById("roomInput").value
+  .trim()
+  .toUpperCase();
+
+
+  if(!myName || !myRoom) {
+
+    alert("กรุณาใส่ชื่อและรหัสห้อง");
+
+    return;
+  }
+
+
+  const roomRef =
+  ref(db, "rooms/" + myRoom);
+
+  const snapshot =
+  await get(roomRef);
+
+
+  if(!snapshot.exists()) {
+
+    alert("ไม่พบห้องนี้");
+
+    return;
+  }
+
+
+  const room = snapshot.val();
+
+
+  if(room.player2) {
+
+    alert("ห้องนี้มีผู้เล่นครบแล้ว");
+
+    return;
+  }
+
+
+  myPlayer = "player2";
+
+
+  await update(roomRef, {
+
+    player2: {
+
+      name: myName,
+
+      choice: ""
+
+    }
+
+  });
+
+
+  openGame();
+
+};
+
+
+/* เปิดหน้าเกม */
+
+function openGame() {
+
+  document.getElementById("menu")
+  .classList.add("hidden");
+
+  document.getElementById("game")
+  .classList.remove("hidden");
+
+  document.getElementById("roomCode")
+  .textContent = myRoom;
+
+
+  listenRoom();
+
+}
+
+
+/* ฟังข้อมูลห้องแบบเรียลไทม์ */
+
+function listenRoom() {
+
+  const roomRef =
+  ref(db, "rooms/" + myRoom);
+
+
+  onValue(roomRef, (snapshot) => {
+
+    if(!snapshot.exists()) return;
+
+
+    const room = snapshot.val();
+
+
+    let playerText = "";
+
+
+    if(room.player1) {
+
+      playerText +=
+      "👤 " + room.player1.name;
+
+    }
+
+
+    if(room.player2) {
+
+      playerText +=
+      "  VS  👤 " + room.player2.name;
+
+    }
+
+
+    document.getElementById("players")
+    .textContent = playerText;
+
+
+    if(!room.player2) {
+
+      document.getElementById("status")
+      .textContent =
+      "⏳ รอเพื่อนเข้าห้อง...";
+
+      return;
+
+    }
+
+
+    if(room.player1.choice &&
+       room.player2.choice) {
+
+      showResult(room);
+
+    }
+
+    else {
+
+      document.getElementById("status")
+      .textContent =
+      "🎮 เลือกของคุณเลย!";
+
+    }
+
+  });
+
+}
+
+
+/* เลือก */
+
+window.choose = async function(choice) {
+
+  if(!myRoom) return;
+
+
+  await update(
+
+    ref(db,
+    "rooms/" + myRoom + "/" + myPlayer),
+
+    {
+
+      choice: choice
+
+    }
+
+  );
+
+
+  document.getElementById("status")
+  .textContent =
+  "✅ เลือกแล้ว รออีกคน...";
+
+};
+
+
+/* คำนวณผล */
+
+function showResult(room) {
+
+  const p1 = room.player1.choice;
+
+  const p2 = room.player2.choice;
+
+
+  let result = "";
+
+
+  if(p1 === p2) {
+
+    result = "🤝 เสมอ!";
+
+  }
+
+  else if(
+
+    (p1 === "rock" && p2 === "scissors") ||
+
+    (p1 === "scissors" && p2 === "paper") ||
+
+    (p1 === "paper" && p2 === "rock")
+
+  ) {
+
+    result =
+    "🏆 " + room.player1.name + " ชนะ!";
+
+  }
+
+  else {
+
+    result =
+    "🏆 " + room.player2.name + " ชนะ!";
+
+  }
+
+
+  document.getElementById("result")
+  .textContent = result;
+
+
+  document.getElementById("status")
+  .textContent =
+  "🎉 ทั้งคู่เลือกแล้ว!";
+
+}
+
+
+/* รอบใหม่ */
+
+window.newRound = async function() {
+
+  const roomRef =
+  ref(db, "rooms/" + myRoom);
+
+
+  await update(roomRef, {
+
+    "player1/choice": "",
+
+    "player2/choice": "",
+
+    result: ""
+
+  });
+
+
+  document.getElementById("result")
+  .textContent = "";
+
+};
+
+
+/* ออกจากห้อง */
+
+window.leaveRoom = async function() {
+
+  location.reload();
+
+};
+
+</script>
+
+</body>
+  </html>
