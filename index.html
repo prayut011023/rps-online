@@ -69,6 +69,11 @@ button:active {
   transform: scale(0.96);
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .blue {
   background: #6366f1;
   color: white;
@@ -201,6 +206,13 @@ button:active {
   color: #cbd5e1;
 }
 
+#firebaseStatus {
+  text-align: center;
+  font-size: 14px;
+  color: #bfdbfe;
+  margin-top: 10px;
+}
+
 @media (max-width: 550px) {
 
   .players {
@@ -231,10 +243,14 @@ button:active {
 <div class="logo">✊ RPS BATTLE ✋</div>
 <div class="subtitle">🌍 Rock Paper Scissors Online</div>
 
+<div id="firebaseStatus">
+⏳ กำลังเชื่อมต่อเกม...
+</div>
+
 
 <!-- LOGIN -->
 
-<div id="loginPage" class="card">
+<div id="loginPage" class="card hidden">
 
 <h2>👤 เข้าสู่เกม</h2>
 
@@ -443,6 +459,10 @@ class="red full">
 
 <script type="module">
 
+/* =========================
+FIREBASE IMPORT
+========================= */
+
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
@@ -458,9 +478,15 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
+import {
+  getAuth,
+  signInAnonymously
+}
+from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
 
 /* =========================
-FIREBASE
+FIREBASE CONFIG
 ========================= */
 
 const firebaseConfig = {
@@ -485,9 +511,62 @@ const firebaseConfig = {
   measurementId: "G-88QY7T21K0"
 };
 
-const app = initializeApp(firebaseConfig);
 
-const db = getDatabase(app);
+/* =========================
+INITIALIZE FIREBASE
+========================= */
+
+const app =
+  initializeApp(firebaseConfig);
+
+const db =
+  getDatabase(app);
+
+const auth =
+  getAuth(app);
+
+
+/* =========================
+ANONYMOUS LOGIN
+========================= */
+
+let currentUser = null;
+
+try {
+
+  const userCredential =
+    await signInAnonymously(auth);
+
+  currentUser =
+    userCredential.user;
+
+  document.getElementById(
+    "firebaseStatus"
+  ).textContent =
+    "🟢 เชื่อมต่อเกมสำเร็จ";
+
+  document.getElementById(
+    "loginPage"
+  ).classList.remove("hidden");
+
+} catch (error) {
+
+  console.error(error);
+
+  document.getElementById(
+    "firebaseStatus"
+  ).textContent =
+    "🔴 เชื่อมต่อ Firebase ไม่สำเร็จ: " +
+    error.code;
+
+  alert(
+    "เข้าสู่ระบบเกมไม่สำเร็จ\n\n" +
+    error.code +
+    "\n" +
+    error.message
+  );
+
+}
 
 
 /* =========================
@@ -554,20 +633,32 @@ loginButton.addEventListener(
   "click",
   function() {
 
+    if (!currentUser) {
+
+      alert(
+        "ยังเชื่อมต่อ Firebase ไม่สำเร็จครับ"
+      );
+
+      return;
+    }
+
     const name =
       nameInput.value.trim();
 
     if (!name) {
 
-      alert("กรุณาใส่ชื่อก่อนครับ 😄");
+      alert(
+        "กรุณาใส่ชื่อก่อนครับ 😄"
+      );
 
       return;
     }
 
     myName = name;
 
-    document.getElementById("myName")
-      .textContent = myName;
+    document.getElementById(
+      "myName"
+    ).textContent = myName;
 
     loginPage.classList.add("hidden");
 
@@ -585,27 +676,52 @@ createButton.addEventListener(
   "click",
   async function() {
 
+    if (!currentUser) {
+
+      alert(
+        "ยังไม่ได้เชื่อมต่อ Firebase"
+      );
+
+      return;
+    }
+
     roomCode =
       generateRoomCode();
 
-    myPlayer = "player1";
+    myPlayer =
+      "player1";
 
     try {
 
       await set(
-        ref(db, "rooms/" + roomCode),
+        ref(
+          db,
+          "rooms/" + roomCode
+        ),
         {
 
           player1: {
+
             name: myName,
+
+            uid: currentUser.uid,
+
             choice: "",
+
             score: 0
+
           },
 
           player2: {
+
             name: "",
+
+            uid: "",
+
             choice: "",
+
             score: 0
+
           },
 
           round: 0,
@@ -621,8 +737,12 @@ createButton.addEventListener(
 
     } catch (error) {
 
+      console.error(error);
+
       alert(
-        "สร้างห้องไม่สำเร็จ\n" +
+        "สร้างห้องไม่สำเร็จ\n\n" +
+        error.code +
+        "\n" +
         error.message
       );
 
@@ -633,7 +753,7 @@ createButton.addEventListener(
 
 
 /* =========================
-GENERATE ROOM
+GENERATE ROOM CODE
 ========================= */
 
 function generateRoomCode() {
@@ -643,12 +763,17 @@ function generateRoomCode() {
 
   let code = "";
 
-  for (let i = 0; i < 5; i++) {
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
 
     code +=
       chars[
         Math.floor(
-          Math.random() * chars.length
+          Math.random() *
+          chars.length
         )
       ];
 
@@ -665,6 +790,15 @@ JOIN ROOM
 joinButton.addEventListener(
   "click",
   async function() {
+
+    if (!currentUser) {
+
+      alert(
+        "ยังไม่ได้เชื่อมต่อ Firebase"
+      );
+
+      return;
+    }
 
     const code =
       roomInput.value
@@ -684,12 +818,17 @@ joinButton.addEventListener(
 
       const snapshot =
         await get(
-          ref(db, "rooms/" + code)
+          ref(
+            db,
+            "rooms/" + code
+          )
         );
 
       if (!snapshot.exists()) {
 
-        alert("ไม่พบห้องนี้ 😢");
+        alert(
+          "ไม่พบห้องนี้ 😢"
+        );
 
         return;
       }
@@ -709,21 +848,33 @@ joinButton.addEventListener(
         return;
       }
 
-      roomCode = code;
+      roomCode =
+        code;
 
-      myPlayer = "player2";
+      myPlayer =
+        "player2";
 
       await update(
-        ref(db, "rooms/" + roomCode),
+        ref(
+          db,
+          "rooms/" + roomCode
+        ),
         {
 
-          "player2/name": myName,
+          "player2/name":
+            myName,
 
-          "player2/choice": "",
+          "player2/uid":
+            currentUser.uid,
 
-          "player2/score": 0,
+          "player2/choice":
+            "",
 
-          status: "playing"
+          "player2/score":
+            0,
+
+          status:
+            "playing"
 
         }
       );
@@ -732,8 +883,12 @@ joinButton.addEventListener(
 
     } catch (error) {
 
+      console.error(error);
+
       alert(
-        "เข้าห้องไม่สำเร็จ\n" +
+        "เข้าห้องไม่สำเร็จ\n\n" +
+        error.code +
+        "\n" +
         error.message
       );
 
@@ -753,8 +908,10 @@ function enterGame() {
 
   gamePage.classList.remove("hidden");
 
-  document.getElementById("roomCode")
-    .textContent = roomCode;
+  document.getElementById(
+    "roomCode"
+  ).textContent =
+    roomCode;
 
   listenRoom();
 
@@ -770,13 +927,18 @@ LISTEN ROOM
 function listenRoom() {
 
   onValue(
-    ref(db, "rooms/" + roomCode),
+    ref(
+      db,
+      "rooms/" + roomCode
+    ),
 
     function(snapshot) {
 
       if (!snapshot.exists()) {
 
-        alert("ห้องนี้ถูกปิดแล้ว");
+        alert(
+          "ห้องนี้ถูกปิดแล้ว"
+        );
 
         location.reload();
 
@@ -790,10 +952,6 @@ function listenRoom() {
 
       updateGame(room);
 
-
-      /*
-      ผู้สร้างห้องเป็นคนคำนวณผล
-      */
 
       if (
 
@@ -823,31 +981,39 @@ UPDATE PLAYERS
 
 function updatePlayers(room) {
 
-  document.getElementById("player1Name")
-    .textContent =
+  document.getElementById(
+    "player1Name"
+  ).textContent =
     room.player1.name ||
     "รอผู้เล่น...";
 
-  document.getElementById("player2Name")
-    .textContent =
+  document.getElementById(
+    "player2Name"
+  ).textContent =
     room.player2.name ||
     "รอผู้เล่น...";
 
-  document.getElementById("score1")
-    .textContent =
+  document.getElementById(
+    "score1"
+  ).textContent =
     room.player1.score || 0;
 
-  document.getElementById("score2")
-    .textContent =
+  document.getElementById(
+    "score2"
+  ).textContent =
     room.player2.score || 0;
 
   const round =
     room.round || 0;
 
-  document.getElementById("roundText")
-    .textContent =
+  document.getElementById(
+    "roundText"
+  ).textContent =
     "ตาที่ " +
-    Math.min(round + 1, 5) +
+    Math.min(
+      round + 1,
+      5
+    ) +
     " / 5";
 
 }
@@ -860,13 +1026,19 @@ UPDATE GAME
 function updateGame(room) {
 
   const status =
-    document.getElementById("status");
+    document.getElementById(
+      "status"
+    );
 
   const choices =
-    document.getElementById("choices");
+    document.getElementById(
+      "choices"
+    );
 
   const result =
-    document.getElementById("result");
+    document.getElementById(
+      "result"
+    );
 
 
   if (!room.player2.name) {
@@ -874,28 +1046,39 @@ function updateGame(room) {
     status.textContent =
       "⏳ รอผู้เล่นคนที่ 2...";
 
-    choices.classList.add("hidden");
+    choices.classList.add(
+      "hidden"
+    );
 
-    result.textContent = "";
+    result.textContent =
+      "";
 
     return;
   }
 
 
-  if (room.status === "playing") {
+  if (
+    room.status === "playing"
+  ) {
 
     status.textContent =
       "🎮 เลือก ✊ ✋ หรือ ✌️";
 
-    choices.classList.remove("hidden");
+    choices.classList.remove(
+      "hidden"
+    );
 
     return;
   }
 
 
-  if (room.status === "resolving") {
+  if (
+    room.status === "resolving"
+  ) {
 
-    choices.classList.add("hidden");
+    choices.classList.add(
+      "hidden"
+    );
 
     status.textContent =
       "⏳ กำลังตัดสินผล...";
@@ -904,9 +1087,13 @@ function updateGame(room) {
   }
 
 
-  if (room.status === "finished") {
+  if (
+    room.status === "finished"
+  ) {
 
-    choices.classList.add("hidden");
+    choices.classList.add(
+      "hidden"
+    );
 
     status.textContent =
       "🏆 จบการแข่งขัน!";
@@ -954,6 +1141,24 @@ scissorsButton.addEventListener(
 
 async function choose(choice) {
 
+  if (!currentUser) {
+
+    alert(
+      "ยังไม่ได้เชื่อมต่อ Firebase"
+    );
+
+    return;
+  }
+
+  if (!roomCode || !myPlayer) {
+
+    alert(
+      "ยังไม่ได้เข้าห้อง"
+    );
+
+    return;
+  }
+
   try {
 
     await set(
@@ -968,14 +1173,19 @@ async function choose(choice) {
       choice
     );
 
-    document.getElementById("status")
-      .textContent =
+    document.getElementById(
+      "status"
+    ).textContent =
       "✅ เลือกแล้ว! รออีกคน...";
 
   } catch (error) {
 
+    console.error(error);
+
     alert(
-      "เลือกไม่ได้\n" +
+      "เลือกไม่ได้\n\n" +
+      error.code +
+      "\n" +
       error.message
     );
 
@@ -990,227 +1200,276 @@ CALCULATE RESULT
 
 async function calculateResult(room) {
 
-  /*
-  ป้องกันการคำนวณซ้ำ
-  */
-
-  await update(
-    ref(db, "rooms/" + roomCode),
-    {
-      status: "resolving"
-    }
-  );
-
-
-  const a =
-    room.player1.choice;
-
-  const b =
-    room.player2.choice;
-
-
-  /*
-  ถ้าเหมือนกัน = เสมอ
-  ไม่เพิ่มคะแนน
-  ไม่เพิ่มตา
-  */
-
-  if (a === b) {
-
-    const emoji = {
-      rock: "✊",
-      paper: "✋",
-      scissors: "✌️"
-    };
+  try {
 
     await update(
-      ref(db, "rooms/" + roomCode),
+      ref(
+        db,
+        "rooms/" + roomCode
+      ),
       {
-
-        "player1/choice": "",
-
-        "player2/choice": "",
-
-        status: "playing",
-
-        result:
-          "🤝 เสมอ! " +
-          emoji[a] +
-          " VS " +
-          emoji[b] +
-          " เล่นตานี้ใหม่!"
-
+        status: "resolving"
       }
     );
 
-    return;
-  }
+
+    const a =
+      room.player1.choice;
+
+    const b =
+      room.player2.choice;
 
 
-  let winner = "";
+    if (a === b) {
 
-  if (
+      const emoji = {
 
-    (a === "rock" &&
-      b === "scissors") ||
+        rock: "✊",
 
-    (a === "paper" &&
-      b === "rock") ||
+        paper: "✋",
 
-    (a === "scissors" &&
-      b === "paper")
+        scissors: "✌️"
 
-  ) {
+      };
 
-    winner = "player1";
+      await update(
+        ref(
+          db,
+          "rooms/" + roomCode
+        ),
+        {
 
-  } else {
+          "player1/choice":
+            "",
 
-    winner = "player2";
+          "player2/choice":
+            "",
 
-  }
+          status:
+            "playing",
 
+          result:
+            "🤝 เสมอ! " +
+            emoji[a] +
+            " VS " +
+            emoji[b] +
+            " เล่นตานี้ใหม่!"
 
-  let score1 =
-    room.player1.score || 0;
+        }
+      );
 
-  let score2 =
-    room.player2.score || 0;
-
-  let round =
-    room.round || 0;
-
-
-  if (winner === "player1") {
-
-    score1++;
-
-  } else {
-
-    score2++;
-
-  }
-
-  /*
-  เพิ่มจำนวนตาที่นับคะแนน
-  */
-
-  round++;
+      return;
+    }
 
 
-  const emoji = {
-    rock: "✊",
-    paper: "✋",
-    scissors: "✌️"
-  };
+    let winner = "";
 
 
-  let resultText = "";
+    if (
 
-  if (winner === "player1") {
+      (a === "rock" &&
+        b === "scissors") ||
 
-    resultText =
-      "🏆 " +
-      room.player1.name +
-      " ชนะตานี้! " +
-      emoji[a] +
-      " VS " +
-      emoji[b];
+      (a === "paper" &&
+        b === "rock") ||
 
-  } else {
+      (a === "scissors" &&
+        b === "paper")
 
-    resultText =
-      "🏆 " +
-      room.player2.name +
-      " ชนะตานี้! " +
-      emoji[a] +
-      " VS " +
-      emoji[b];
+    ) {
 
-  }
-
-
-  /*
-  ครบ 5 ตา
-  */
-
-  if (round >= 5) {
-
-    let finalText = "";
-
-    if (score1 > score2) {
-
-      finalText =
-        "🏆🎉 " +
-        room.player1.name +
-        " ชนะการแข่งขัน! " +
-        score1 +
-        "-" +
-        score2;
+      winner =
+        "player1";
 
     } else {
 
-      finalText =
-        "🏆🎉 " +
-        room.player2.name +
-        " ชนะการแข่งขัน! " +
-        score2 +
-        "-" +
-        score1;
+      winner =
+        "player2";
 
+    }
+
+
+    let score1 =
+      room.player1.score || 0;
+
+    let score2 =
+      room.player2.score || 0;
+
+    let round =
+      room.round || 0;
+
+
+    if (
+      winner === "player1"
+    ) {
+
+      score1++;
+
+    } else {
+
+      score2++;
+
+    }
+
+
+    round++;
+
+
+    const emoji = {
+
+      rock: "✊",
+
+      paper: "✋",
+
+      scissors: "✌️"
+
+    };
+
+
+    let resultText = "";
+
+
+    if (
+      winner === "player1"
+    ) {
+
+      resultText =
+        "🏆 " +
+        room.player1.name +
+        " ชนะตานี้! " +
+        emoji[a] +
+        " VS " +
+        emoji[b];
+
+    } else {
+
+      resultText =
+        "🏆 " +
+        room.player2.name +
+        " ชนะตานี้! " +
+        emoji[a] +
+        " VS " +
+        emoji[b];
+
+    }
+
+
+    if (round >= 5) {
+
+      let finalText = "";
+
+
+      if (score1 > score2) {
+
+        finalText =
+          "🏆🎉 " +
+          room.player1.name +
+          " ชนะการแข่งขัน! " +
+          score1 +
+          "-" +
+          score2;
+
+      } else if (
+        score2 > score1
+      ) {
+
+        finalText =
+          "🏆🎉 " +
+          room.player2.name +
+          " ชนะการแข่งขัน! " +
+          score2 +
+          "-" +
+          score1;
+
+      } else {
+
+        finalText =
+          "🤝🎉 เสมอกัน! " +
+          score1 +
+          "-" +
+          score2;
+
+      }
+
+
+      await update(
+        ref(
+          db,
+          "rooms/" + roomCode
+        ),
+        {
+
+          "player1/score":
+            score1,
+
+          "player2/score":
+            score2,
+
+          "player1/choice":
+            "",
+
+          "player2/choice":
+            "",
+
+          round:
+            round,
+
+          status:
+            "finished",
+
+          result:
+            finalText
+
+        }
+      );
+
+      return;
     }
 
 
     await update(
-      ref(db, "rooms/" + roomCode),
+      ref(
+        db,
+        "rooms/" + roomCode
+      ),
       {
 
-        "player1/score": score1,
+        "player1/score":
+          score1,
 
-        "player2/score": score2,
+        "player2/score":
+          score2,
 
-        "player1/choice": "",
+        "player1/choice":
+          "",
 
-        "player2/choice": "",
+        "player2/choice":
+          "",
 
-        round: round,
+        round:
+          round,
 
-        status: "finished",
+        status:
+          "playing",
 
-        result: finalText
+        result:
+          resultText
 
       }
     );
 
-    return;
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "คำนวณผลไม่สำเร็จ\n\n" +
+      error.code +
+      "\n" +
+      error.message
+    );
+
   }
-
-
-  /*
-  ยังไม่ครบ 5 ตา
-  เริ่มตาใหม่อัตโนมัติ
-  */
-
-  await update(
-    ref(db, "rooms/" + roomCode),
-    {
-
-      "player1/score": score1,
-
-      "player2/score": score2,
-
-      "player1/choice": "",
-
-      "player2/choice": "",
-
-      round: round,
-
-      status: "playing",
-
-      result: resultText
-
-    }
-  );
 
 }
 
@@ -1232,9 +1491,12 @@ function listenChat() {
     function(snapshot) {
 
       const chatBox =
-        document.getElementById("chatBox");
+        document.getElementById(
+          "chatBox"
+        );
 
-      chatBox.innerHTML = "";
+      chatBox.innerHTML =
+        "";
 
       snapshot.forEach(
         function(child) {
@@ -1243,13 +1505,17 @@ function listenChat() {
             child.val();
 
           const div =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           div.className =
             "message";
 
           const name =
-            document.createElement("span");
+            document.createElement(
+              "span"
+            );
 
           name.className =
             "message-name";
@@ -1257,7 +1523,9 @@ function listenChat() {
           name.textContent =
             msg.name + ": ";
 
-          div.appendChild(name);
+          div.appendChild(
+            name
+          );
 
           div.appendChild(
             document.createTextNode(
@@ -1265,7 +1533,9 @@ function listenChat() {
             )
           );
 
-          chatBox.appendChild(div);
+          chatBox.appendChild(
+            div
+          );
 
         }
       );
@@ -1288,101 +1558,5 @@ sendButton.addEventListener(
   sendMessage
 );
 
-chatInput.addEventListener(
-  "keydown",
-  function(event) {
 
-    if (event.key === "Enter") {
-
-      sendMessage();
-
-    }
-
-  }
-);
-
-
-async function sendMessage() {
-
-  const text =
-    chatInput.value.trim();
-
-  if (!text) return;
-
-  await push(
-    ref(
-      db,
-      "rooms/" +
-      roomCode +
-      "/messages"
-    ),
-    {
-
-      name: myName,
-
-      text: text,
-
-      time: Date.now()
-
-    }
-  );
-
-  chatInput.value = "";
-
-}
-
-
-/* =========================
-LEAVE
-========================= */
-
-leaveButton.addEventListener(
-  "click",
-  async function() {
-
-    const confirmLeave =
-      confirm(
-        "ต้องการออกจากห้องใช่ไหม?"
-      );
-
-    if (!confirmLeave) return;
-
-
-    if (myPlayer === "player1") {
-
-      await remove(
-        ref(
-          db,
-          "rooms/" + roomCode
-        )
-      );
-
-    } else {
-
-      await update(
-        ref(
-          db,
-          "rooms/" + roomCode
-        ),
-        {
-
-          "player2/name": "",
-
-          "player2/choice": "",
-
-          "player2/score": 0
-
-        }
-      );
-
-    }
-
-    location.reload();
-
-  }
-);
-
-</script>
-
-</body>
-</html>
+chatI
